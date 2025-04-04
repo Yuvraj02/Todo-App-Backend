@@ -1,16 +1,30 @@
 import express from "express"
-import path from "path"
+import cors from "cors"
+import dotenv from "dotenv"
+import pool from "./config/db"
+import todoRoutes from "./routes/todoRoutes"
+import errorHandling from "./middlewares/errorHandler"
+dotenv.config()
 
-const port = 3000
-const app = express();
+const app = express()
+const port = process.env.PORT || 3001
 
-app.use(express.static(path.join(__dirname, "../Todo App/dist")))
+app.use(express.json())
+app.use(cors())
 
-app.get("/",(req,res)=> {
-    console.log("GET METHOD initiated")
-    res.sendFile(path.join(__dirname, "../Todo App/dist/index.html"))
+//Routes
+app.use("/api", todoRoutes)
+
+//Error Handling middleware
+app.use(errorHandling)
+//Teesting POSTGRES Connection
+app.get("/", async (req,res)=>{
+  const result = await pool.query("SELECT current_database()");
+  res.send(`The database name is : ${result.rows[0].current_database}`)
 });
+//Server Running
+
 
 app.listen(port, ()=>{
-    console.log(`Listening On Port ${port}`)
+  console.log(`Server running on port ${port}`)
 })
